@@ -31,12 +31,22 @@ RUN yum -y install gcc \
     python-devel \
     lua-devel \
     sqlite-devel \
+    tcp_wrappers \
+    tcp_wrappers-devel \
+    libxml2-devel \
+    libicu-devel \
     gettext
 
 
 RUN curl https://bootstrap.pypa.io/get-pip.py | python 
 
 RUN pip install lesscpy cheetah python-dateutil Babel
+
+
+COPY conf/prelude-manager.conf /usr/local/etc/prelude-manager.conf
+COPY scripts/nodes.sh /opt/nodes.sh
+COPY docker-entrypoint.sh /
+RUN mkdir -p /var/log/prelude 
 
 WORKDIR /opt/prelude-src/libprelude-${PRELUDE_VERSION}
 RUN ./configure --with-python2 --with-lua-config && \
@@ -63,16 +73,28 @@ RUN ./configure && \
     make -j$(nproc) && \
     make install
 
+WORKDIR /opt/prelude-src/prelude-lml-rules-${PRELUDE_VERSION}
+RUN cp -r ruleset /usr/local/etc/prelude-lml/
+
+
 
 WORKDIR /opt/prelude-src/prewikka-${PRELUDE_VERSION}
 RUN python setup.py install
 
-RUN mkdir -p /srv/prelude/db 
-COPY prewikka.conf /etc/prewikka/
+COPY conf/prewikka.conf /etc/prewikka/prewikka.conf
 
-RUN sqlite3 /srv/prelude/db/prelude.db ".databases" && \
-    sqlite3 /srv/prelude/db/prewikka.db ".databases"
+RUN mkdir -p /srv/prelude/db 
+RUN cat /usr/local/share/libpreludedb/classic/sqlite.sql |sqlite3 /srv/prelude/db/prelude.db
+RUN sqlite3 /srv/prelude/db/prewikka.db ".databases"
+
+# Profil creation 
+RUN prelude-admin add prelude-manager --uid 0 --gid 0
+
+# Add agents
+WORKDIR /opt/
+RUN /bin/bash nodes.sh
 
 EXPOSE 8000
 
-ENTRYPOINT ["/usr/bin/prewikka-httpd"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
