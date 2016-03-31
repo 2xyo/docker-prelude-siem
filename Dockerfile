@@ -83,6 +83,7 @@ COPY conf/prewikka.conf /etc/prewikka/prewikka.conf
 RUN mkdir -p /srv/prelude/db 
 
 COPY conf/prelude-manager.conf /usr/local/etc/prelude-manager/prelude-manager.conf
+COPY conf/prelude-correlator.conf /etc/prelude-correlator/prelude-correlator.conf
 COPY scripts/nodes.sh /opt/nodes.sh
 COPY docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
