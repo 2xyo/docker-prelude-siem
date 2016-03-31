@@ -1,12 +1,12 @@
 # docker-prelude-siem
 
-From Docker hub 
+From Docker hub:
 ```
 $ docker run -h prelude-manager.foo --name prelude -p 8000:8000 2xyo/prelude-siem
 
 ```
 
-From source
+From source:
 ```
 $ cd /home/yoyo/projects/
 $ git clone https://github.com/2xyo/docker-prelude-siem.git
@@ -20,7 +20,7 @@ $ docker run -h prelude-manager.foo -d --name prelude -p 8000:8000 \
     prelude
 ```
 
-Or interactive start :
+Or interactive start:
 ```
 $  docker run -h prelude-manager.foo --name prelude -it -p 8000:8000  \
     -v /home/yoyo/projects/docker-prelude-siem/data/logs/apache2:/var/log/apache2 \
@@ -33,13 +33,12 @@ $  docker run -h prelude-manager.foo --name prelude -it -p 8000:8000  \
 
 Then open http://127.0.0.1:8000
 
-Test prelude-lml
-
+Test prelude-lml:
 ```
 $ echo '[Sat Mar 12 22:48:24 2005] [error] [client 127.0.0.1] Directory index forbidden by rule: /var/www/sample/' >> ./data/logs/apache2/error_log
 ```
 
-More logs 
+More logs:
 ```
 $ docker exec prelude egrep ^#LOG /usr/local/etc/prelude-lml/ruleset/httpd.rules | awk -F'#LOG:' '{print $2}'
 [Sat Mar 12 22:56:12 2005] [error] [client 127.0.0.1] File does not exist: /var/www/favicon.ico
@@ -54,6 +53,23 @@ Apr 17 12:58:48 mail httpd: Apache:mod_ssl:Error: Pass phrase incorrect (5 more 
 Apr 17 14:00:48 mail httpd: Apache:mod_ssl:Error: Pass phrase incorrect.
 Apr 17 14:00:13 mail httpd: httpd shutdown succeeded
 Apr 17 14:02:41 mail httpd: httpd startup succeeded
+```
+
+Or execute the following command a few times to trigger a correlation alert:
+```
+$ docker exec prelude /bin/sh -c "echo -e\
+'Dec  9 19:00:39 itguxweb2 sshd[24541]: Failed password for root from 12.34.56.79 port 1806\n'\
+'Dec  9 19:00:40 itguxweb2 sshd[24541]: Failed password for root from 12.34.56.79 port 1807\n'\
+'Dec  9 19:00:41 itguxweb2 sshd[24541]: Failed password for root from 12.34.56.79 port 1808\n'\
+'Dec  9 19:00:42 itguxweb2 sshd[24541]: Failed password for root from 12.34.56.79 port 1809\n'\
+'Dec  9 19:00:43 itguxweb2 sshd[24541]: Failed password for root from 12.34.56.79 port 1810\n'\
+'Dec  9 19:00:44 itguxweb2 sshd[24541]: Failed password for root from 12.34.56.79 port 1811\n'\
+>> /var/log/messages"
+```
+
+Play inside the container:
+```
+$ docker exec -it prelude /bin/bash 
 ```
 
 Clean data
